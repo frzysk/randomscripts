@@ -1,0 +1,54 @@
+#!/bin/bash
+
+# Made by zy (https://github.com/frzysk)
+#
+# This scripts makes your pointer automatically move at a specific interval
+#  to avoid automatic lock of the computer.
+# Doesn't need root.
+#
+# How to start it:
+#     $ mycaffeine start
+# How to stop it:
+#     $ mycaffeine stop
+# How to check if it's currently running:
+#     don't
+# How to specify the interval:
+#     Change the value of the variable $DELAY in the script.
+# How to check if it works:
+#     Change the delay to 1 seconds and see if your pointer moves
+# What if it doesn't work:
+#     That would be sad
+
+DELAY=300 # in seconds
+
+RUNNINGFILE=~/.mycaffeine_running
+LOGFILE=~/.mycaffeine.log
+
+function daemon()
+{
+	echo "Start mycaffeine."
+	rm "$RUNNINGFILE" 2> /dev/null
+	sleep 2
+	> "$RUNNINGFILE" echo "Remove this file to stop mycaffeine"
+	COUNTER=0
+	while [[ -f "$RUNNINGFILE" ]]; do
+		let 'COUNTER = (COUNTER + 1) % DELAY'
+		if [[ "$COUNTER" -eq "0" ]]; then
+			xdotool mousemove_relative --sync -- 1 0 && xdotool mousemove_relative --sync -- -1 0
+		fi
+		sleep 1
+	done
+	echo "Quit mycaffeine."
+}
+
+if [[ "$*" == "start" ]]; then
+	echo "Start mycaffeine in background..."
+	2>&1 >> $LOGFILE daemon &
+elif [[ "$*" == "stop" ]]; then
+	rm "$RUNNINGFILE"
+elif [[ "$*" == "status" ]]; then
+	echo "i dunno sorry ¯\\_(ツ)_/¯"
+else
+	>&2 echo "Syntax: $0 <start|stop>"
+	exit 1
+fi
